@@ -1,8 +1,3 @@
---// ╔════════════════════════════════════════════════════════════════╗
---// ║         AIMBOT UNIVERSAL ADVANCED - VERSÃO FINAL v3.1         ║
---// ║              UI Perfeita + Todos os Bugs Corrigidos            ║
---// ╚════════════════════════════════════════════════════════════════╝
-
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local Camera = workspace.CurrentCamera
@@ -959,5 +954,6 @@ local function CreateUI()
     CreateFPSDisplay()
     StartESP()
 end
+
 
 CreateUI()
