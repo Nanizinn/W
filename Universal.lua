@@ -25,6 +25,7 @@ local CONFIG = {
     WallCheckEnabled = true,
     FPSCounterEnabled = false,
     DetectionAvoidanceEnabled = false,
+    CameraFOV = 70,
 }
 
 local ESPCache = {}
@@ -35,6 +36,7 @@ local aimbotLoop = nil
 local espLoop = nil
 local hitboxLoop = nil
 local fpsLoop = nil
+local cameraFOVLoop = nil
 local UIMinimized = false
 local MainUI = nil
 local FPSCounter = 0
@@ -566,6 +568,27 @@ local function CreateFPSDisplay()
     FPSDisplay.Visible = CONFIG.FPSCounterEnabled
 end
 
+local function StartCameraFOV()
+    if cameraFOVLoop then cameraFOVLoop:Disconnect() end
+    
+    cameraFOVLoop = RunService.RenderStepped:Connect(function()
+        if not LocalPlayer.Character then return end
+        pcall(function()
+            Camera.FieldOfView = CONFIG.CameraFOV
+        end)
+    end)
+end
+
+local function StopCameraFOV()
+    if cameraFOVLoop then
+        cameraFOVLoop:Disconnect()
+        cameraFOVLoop = nil
+    end
+    pcall(function()
+        Camera.FieldOfView = 70
+    end)
+end
+
 local UIElements = {}
 
 local function UpdateUIStatus()
@@ -604,6 +627,9 @@ local function UpdateUIStatus()
     end
     if UIElements.WalkSpeedSliderLabel then
         UIElements.WalkSpeedSliderLabel.Text = "Speed: " .. CONFIG.WalkSpeed
+    end
+    if UIElements.CameraFOVLabel then
+        UIElements.CameraFOVLabel.Text = "Cam FOV: " .. CONFIG.CameraFOV
     end
 end
 
@@ -663,7 +689,7 @@ local function CreateUI()
     MainContent.BackgroundColor3 = Color3.fromRGB(12, 12, 20)
     MainContent.BorderSizePixel = 0
     MainContent.ScrollBarThickness = 3
-    MainContent.CanvasSize = UDim2.new(0, 0, 0, 580)
+    MainContent.CanvasSize = UDim2.new(0, 0, 0, 630)
     MainContent.Parent = MainFrame
     UIElements.Content = MainContent
 
@@ -829,6 +855,38 @@ local function CreateUI()
     end)
     yPos = yPos + 30
 
+    -- ✅ CAMERA FOV SLIDER
+    UIElements.CameraFOVLabel = Instance.new("TextLabel")
+    UIElements.CameraFOVLabel.Size = UDim2.new(1, -16, 0, 12)
+    UIElements.CameraFOVLabel.Position = UDim2.new(0, 8, 0, yPos)
+    UIElements.CameraFOVLabel.BackgroundTransparency = 1
+    UIElements.CameraFOVLabel.TextColor3 = Color3.fromRGB(140, 140, 160)
+    UIElements.CameraFOVLabel.Text = "Cam FOV: 70"
+    UIElements.CameraFOVLabel.Font = Enum.Font.Gotham
+    UIElements.CameraFOVLabel.TextSize = 7
+    UIElements.CameraFOVLabel.Parent = MainContent
+
+    local CameraFOVSlider = Instance.new("TextBox")
+    CameraFOVSlider.Size = UDim2.new(1, -16, 0, 14)
+    CameraFOVSlider.Position = UDim2.new(0, 8, 0, yPos + 13)
+    CameraFOVSlider.BackgroundColor3 = Color3.fromRGB(35, 35, 55)
+    CameraFOVSlider.TextColor3 = Color3.fromRGB(120, 160, 255)
+    CameraFOVSlider.Text = tostring(CONFIG.CameraFOV)
+    CameraFOVSlider.Font = Enum.Font.Gotham
+    CameraFOVSlider.TextSize = 8
+    CameraFOVSlider.Parent = MainContent
+
+    CameraFOVSlider.FocusLost:Connect(function()
+        local value = tonumber(CameraFOVSlider.Text)
+        if value then
+            CONFIG.CameraFOV = math.clamp(value, 1, 120)
+            CameraFOVSlider.Text = tostring(CONFIG.CameraFOV)
+            StartCameraFOV()
+            UpdateUIStatus()
+        end
+    end)
+    yPos = yPos + 30
+
     -- ✅ RESTO DOS BOTÕES
     local TeamCheckLabel, TeamCheckButton = CreateButton("🛡 TEAMCHECK", yPos)
     UIElements.TeamCheckLabel = TeamCheckButton
@@ -921,6 +979,7 @@ local function CreateUI()
         StopWalkSpeed()
         StopESP()
         StopFPSCounter()
+        StopCameraFOV()
         collectgarbage("collect")
     end)
 
@@ -953,6 +1012,7 @@ local function CreateUI()
     UpdateUIStatus()
     CreateFPSDisplay()
     StartESP()
+    StartCameraFOV()
 end
 
 
